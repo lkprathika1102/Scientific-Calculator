@@ -20,7 +20,7 @@ const modeIndicator = document.getElementById('mode-indicator');
 const memIndicator = document.getElementById('mem-indicator');
 const keypad = document.getElementById('keypad');
 
-function insertTextAtCursor(test) {
+function insertTextAtCursor(text) {
     const start = exprInput.selectionStart;
     const end = exprInput.selectionEnd;
     const val = exprInput.value;
@@ -51,7 +51,7 @@ function deleteAtCursor() {
 }
 
 function toggleAngleMode(){
-    state.anglemode = state.angleMode === 'DEG' ? 'RAD' : 'DEG';
+    state.angleMode = state.angleMode === 'DEG' ? 'RAD' : 'DEG';
     modeIndicator.textContent = state.angleMode;
 
 }
@@ -76,7 +76,7 @@ function allClear() {
 function handleAction(action) {
     switch (action) {
         case 'toggle-mode':
-            toggleAngleModel();
+            toggleAngleMode();
             break;
         case 'backspace':
             deleteAtCursor();
@@ -124,7 +124,7 @@ keypad.addEventListener('click' , (e) => {
 
 
 
-window.addEvntListener('load', () => {
+window.addEventListener('load', () => {
     exprInput.focus();
 
 });

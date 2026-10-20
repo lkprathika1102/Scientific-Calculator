@@ -1,0 +1,64 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin:20px;
+    font-family: monospace;
+
+}
+
+#calculator {
+    width: 680px;
+    border:2px solid #000000;
+    padding: 10px;
+
+}
+
+#display-container {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #000000;  
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#status-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+#expr-input {
+    width: 100%;
+    font-family: monospace;
+    font-size: 16px;
+    border: 1px solid #b3a3a3;
+    padding: 5px;
+    outline: none;
+}
+
+#result-display {
+    font-family: monospace;
+    font-size: 24px;
+    text-align: right;
+    padding: 5px 0 0 0;
+    min-height: 32px;
+
+
+    
+}
+
+#keypad {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+}
+
+#keypad-button {
+    font-family:monospace;
+    font-size: 16px;
+    padding: 10px;
+    cursor: pointer;
+}

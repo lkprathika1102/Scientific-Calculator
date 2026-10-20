@@ -73,6 +73,132 @@ function allClear() {
     exprInput.focus();
 }
 
+const TOKEN_TYPES = {
+    NUMBER: 'NUMBER',
+    IDENT: 'IDENT',      // const, variables and stuff
+    OP: 'OP',             // + _ * etc
+    LPAREN: 'LPAREN',  // (
+    RPAREN: 'RPAREN',  // )
+    COMMA: 'COMMA',    // ,
+    ASSIGN: 'ASSIGN',  // =
+}
+
+
+const BASIC_OPS = new set(['+', '-', '*', '/', '^', '%', '!' ]);
+
+function isDigit(char) {
+    return char >= '0' && char <= '9';
+
+}
+
+function is Alpha(char) {
+    return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z');
+
+}
+
+
+// to convert the raw mathematical input string to structured tokens, tokenizer
+
+function tokenize(input) {
+    const tokens = [];
+    let i = 0;
+    const len = input.length;
+
+    while (i < len) {
+        const char = input[i];
+
+        if (char === ' ' || char === '\t' || char === '\n') {
+            i++;
+            continue;
+        }
+
+        if (isDigit(char) || (char === '-' && isDigit(input[i + 1]))) {
+            let numStr = '';
+            let decimalCount = 0;
+
+            while (i < len && (isDigit(input[i]) || input[i] === '-')) {
+                if (input[i] === '-') {
+                    decimalCount++;
+                    if (decimalCount > 1) {
+                        throw new Error(`Malformed number syntax near '${numStr}.'`);
+                    }
+                }
+                numStr += input[i];
+                i++;
+            }
+
+
+            tokens.push({
+                type: TOKEN_TYPES.NUMBER,
+                value: parseFloat(numStr),
+                raw: numStr
+            });
+            continue;
+        }
+
+
+        if (isAlpha(char)) {
+            let idenStr = '';
+            while (i < len && (isAlpha(input[i]) || isDigit(input[i]))) {
+                idenStr += input[i];
+                i++;
+            }
+
+            tokens.push({
+                type: TOKEN_TYPES.IDENT,
+                value: idenStr
+            });
+            continue;
+        }
+
+
+          // basic operators
+        if (BASIC_OPS.has(char)) {
+            tokens.push({
+                type: TOKEN_TYPES.OP,
+                value: char
+            });
+            i++;
+            continue;
+        }
+
+
+        //parenthesis
+
+        if(char === '(') {
+            tokens.push({ type: TOKEN_TYPES.LPAREN, value: '('});
+            i++;
+            continue;
+        }
+
+         if(char === ')') {
+            tokens.push({ type: TOKEN_TYPES.RPAREN, value: ')'});
+            i++;
+            continue;
+        }
+
+         if(char === ',') {
+            tokens.push({ type: TOKEN_TYPES.COMMA, value: ','});
+            i++;
+            continue;
+        }
+
+         if(char === '=') {
+            tokens.push({ type: TOKEN_TYPES.ASSIGN, value: '='});
+            i++;
+            continue;
+        }
+
+        throw new Error(`Invalid character encountered: '${char}'`);
+    }
+
+    return tokens;
+}
+
+function formatTokenStream(tokens) {
+    return tokens.map(t => `[${t.type}: ${t.value}]`).join(' ');
+}
+
 function handleAction(action) {
     switch (action) {
         case 'toggle-mode':
@@ -99,10 +225,19 @@ function handleAction(action) {
             updateMemoryIndicator();
             break;
         case 'evaluate':
-            // parser will be written here
-
-            resultDisplay.textContent = exprInput.value;
-            break;
+       try {
+        if (!exprInput.value.trim()) {
+          resultDisplay.textContent = '0';
+          return;
+        }
+        const tokens = tokenize(exprInput.value);
+        console.log('Parsed Tokens:', tokens);
+        resultDisplay.textContent = formatTokenStream(tokens);
+      } catch (err) {
+        console.error(err);
+        resultDisplay.textContent = `Error: ${err.message}`;
+      }
+      break;
 
     }
 }

@@ -92,7 +92,7 @@ const KNOWN_FUNCS = new Set([
 ]);
 
 const KNOWN_CONSTS = new Set(['pi', 'e']);
-const KNOWN_VARS = new Se(['ans', 'x', 'y', 'z']);
+const KNOWN_VARS = new Set(['ans', 'x', 'y', 'z']);
 
 function isDigit(char) {
   return char >= '0' && char <= '9';
@@ -148,9 +148,9 @@ function rawScan(input) {
         i++;
       }
 
-      if (KNOWN_FUNCS.has(idenStr)) {
+      if (KNOWN_FUNCS.has(identStr)) {
         tokens.push({type: TOKEN_TYPES.FUNC, value: identStr });
-      } else if (KNOWN_CONSTS.has(ident.Str)) {
+      } else if (KNOWN_CONSTS.has(identStr)) {
         tokens.push({type: TOKEN_TYPES.CONST, value: identStr });
       } else if (KNOWN_VARS.has(identStr)) {
         tokens.push({type: TOKEN_TYPES.VAR, value: identStr });
@@ -205,8 +205,8 @@ function rawScan(input) {
 }
 
 
-function resolveUnaryMinus(token) {
-  const token = [];
+function resolveUnaryMinus(tokens) {
+  const result = [];
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
@@ -218,6 +218,7 @@ function resolveUnaryMinus(token) {
        prev === null ||
        prev.type === TOKEN_TYPES.OP ||
        prev.type === TOKEN_TYPES.NEG ||
+       prev.type === TOKEN_TYPES.LPAREN ||
        prev.type === TOKEN_TYPES.COMMA;
 
       if (isUnary) {
@@ -245,7 +246,7 @@ function injectImplicitMultiplication(tokens) {
     TOKEN_TYPES.RPAREN
   ]);
 
-  const triggersRight = Set([
+  const triggersRight = new Set([
     TOKEN_TYPES.NUMBER,
     TOKEN_TYPES.CONST,
     TOKEN_TYPES.VAR,
@@ -294,7 +295,7 @@ function formatTokenStream(tokens) {
 }
 
 
-//--------------------------------------------
+
 function handleAction(action) {
   switch (action) {
     case 'toggle-mode':

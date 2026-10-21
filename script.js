@@ -70,8 +70,11 @@ function allClear() {
 
 const TOKEN_TYPES = {
   NUMBER: 'NUMBER',
-  IDENT: 'IDENT',       
-  OP: 'OP',             // +, -, *, /, ^, %, !
+  FUNC: 'FUNC',  
+  CONST: 'CONST',
+  VAR: 'VAR',     // x y z
+  OP: 'OP',   // + - *
+  NEG: 'NEG',           
   LPAREN: 'LPAREN',     // (
   RPAREN: 'RPAREN',     // )
   COMMA: 'COMMA',       // ,
@@ -81,6 +84,16 @@ const TOKEN_TYPES = {
 
 const BASIC_OPS = new Set(['+', '-', '*', '/', '^', '%', '!']);
 
+
+const KNOWN_FUNCS = new Set([
+  'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
+  'ln', 'log', 'sqrt', 'cbrt', 'root', 'abs',
+  'nCr', 'nPr', 'gcd', 'lcm'
+]);
+
+const KNOWN_CONSTS = new Set(['pi', 'e']);
+const KNOWN_VARS = new Se(['ans', 'x', 'y', 'z']);
+
 function isDigit(char) {
   return char >= '0' && char <= '9';
 }
@@ -88,9 +101,10 @@ function isDigit(char) {
 function isAlpha(char) {
   return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z');
 }
+//------------------------------------------------
 
 
-function tokenize(input) {
+function rawScan(input) {
   const tokens = [];
   let i = 0;
   const len = input.length;
@@ -134,11 +148,17 @@ function tokenize(input) {
         i++;
       }
 
-      tokens.push({
-        type: TOKEN_TYPES.IDENT,
-        value: identStr
-      });
+      if (KNOWN_FUNCS.has(idenStr)) {
+        tokens.push({type: TOKEN_TYPES.FUNC, value: identStr });
+      } else if (KNOWN_CONSTS.has(ident.Str)) {
+        tokens.push({type: TOKEN_TYPES.CONST, value: identStr });
+      } else if (KNOWN_VARS.has(identStr)) {
+        tokens.push({type: TOKEN_TYPES.VAR, value: identStr });
+      } else {
+        throw new Error(`Unknown Identifier: '${identStr}.'`);
+      }
       continue;
+
     }
 
     //  Basic operators
@@ -178,19 +198,103 @@ function tokenize(input) {
       continue;
     }
 
-    throw new Error(`Invalid character encountered: '${char}'`);
+    throw new Error(`Invalid character: '${char}'`);
   }
 
   return tokens;
 }
 
 
-function formatTokenStream(tokens) {
-  return tokens.map(t => `[${t.type}: ${t.value}]`).join(' ');
+function resolveUnaryMinus(token) {
+  const token = [];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+
+    if (token.type === TOKEN_TYPES.OP && token.value === '-') {
+      const prev = i > 0 ? tokens[i - 1] : null;
+
+      const isUnary = 
+       prev === null ||
+       prev.type === TOKEN_TYPES.OP ||
+       prev.type === TOKEN_TYPES.NEG ||
+       prev.type === TOKEN_TYPES.COMMA;
+
+      if (isUnary) {
+        result.push({ type: TOKEN_TYPES.NEG, value: 'NEG'});
+        continue;
+      }
+
+    }
+
+    result.push(token);
+  }
+
+  return result;
+}
+
+// for implicit multiplication
+
+function injectImplicitMultiplication(tokens) {
+  const result = [];
+
+  const triggersLeft = new Set([
+    TOKEN_TYPES.NUMBER,
+    TOKEN_TYPES.CONST,
+    TOKEN_TYPES.VAR,
+    TOKEN_TYPES.RPAREN
+  ]);
+
+  const triggersRight = Set([
+    TOKEN_TYPES.NUMBER,
+    TOKEN_TYPES.CONST,
+    TOKEN_TYPES.VAR,
+    TOKEN_TYPES.FUNC,
+    TOKEN_TYPES.LPAREN
+  ]);
+
+  for (let i = 0; i < tokens.length; i++) {
+    const curr = tokens[i];
+    result.push(curr);
+
+    if (i < tokens.length - 1 ) {
+      const next = tokens[i + 1];
+
+
+      if (curr.type === TOKEN_TYPES.OP && curr.value === '!') {
+        if (triggersRight.has(next.type)) {
+          result.push({ type: TOKEN_TYPES.OP, value: '*'});
+        }
+        continue;
+      }
+      if (triggersLeft.has(curr.type) && triggersRight.has(next.type)) {
+        result.push({ type: TOKEN_TYPES.OP, value: '*'});
+      }
+
+
+    }
+  }
+
+  return result;
 }
 
 
+function tokenize(input) {
+  const rawTokens = rawScan(input);
+  const withUnary = resolveUnaryMinus(rawTokens);
+  const fullyProcessed = injectImplicitMultiplication(withUnary);
+  return fullyProcessed;
+}
 
+function formatTokenStream(tokens) {
+  return tokens.map(t => {
+    if (t.type === TOKEN_TYPES.NEG) return `[NEG]`;
+    return `[${t.type}: ${t.value}]`;
+  }).join(' ');
+}
+
+
+//--------------------------------------------
 function handleAction(action) {
   switch (action) {
     case 'toggle-mode':

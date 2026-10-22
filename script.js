@@ -299,8 +299,8 @@ const OP_PRECEDENCE = {
 
 // shunting yard
 function toRPN(tokens) {
-  const outQueue = [];
-  const opStock = [];
+  const outputQueue = [];
+  const opStack = [];
 
 
   for (let i = 0; i < tokens.length; i++) {
@@ -319,7 +319,7 @@ function toRPN(tokens) {
       continue;
     }
 
-    if (token.type === TOKEN_TYPE.RPAREN) {
+    if (token.type === TOKEN_TYPES.RPAREN) {
       let foundLparen = false;
       while (opStack.length > 0) {
         const top = opStack[opStack.length - 1];
@@ -333,7 +333,7 @@ function toRPN(tokens) {
       }
 
       if (!foundLparen) {
-        throw new Error("Mismatched parentheses: extra '(' ");
+        throw new Error("Mismatched parentheses: extra ')'");
       }
       continue;
     }
@@ -352,7 +352,7 @@ function toRPN(tokens) {
 
         if (!config2) break;
 
-        const isLeftAsoocAndLessEqual =
+        const isLeftAssocAndLessEqual =
          config1.assoc === 'L' && config1.prec <= config2.prec;
         const isRightAssocAndStrictlyLess = 
          config1.assoc === 'R' && config1.prec < config2.prec;
@@ -364,7 +364,7 @@ function toRPN(tokens) {
          }
       }
 
-      opStack.push(tokens);
+      opStack.push(token);
       continue;
     }
   }

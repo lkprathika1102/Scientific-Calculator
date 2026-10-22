@@ -287,13 +287,104 @@ function tokenize(input) {
   return fullyProcessed;
 }
 
-function formatTokenStream(tokens) {
-  return tokens.map(t => {
-    if (t.type === TOKEN_TYPES.NEG) return `[NEG]`;
-    return `[${t.type}: ${t.value}]`;
-  }).join(' ');
+const OP_PRECEDENCE = {
+  '+': { prec: 1, assoc: 'L'},
+  '-': { prec: 1, assoc: 'L'},
+  '*': { prec: 2, assoc: 'L'},
+  '/': { prec: 2, assoc: 'L'},
+  '%': { prec: 2, assoc: 'L'},
+  'NEG': { prec: 3, assoc: 'R'}
+
+};
+
+// shunting yard
+function toRPN(tokens) {
+  const outQueue = [];
+  const opStock = [];
+
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+
+    if (
+      token.type === TOKEN_TYPES.NUMBER ||
+      token.type === TOKEN_TYPES.CONST ||
+      token.type === TOKEN_TYPES.VAR 
+    ) {
+      outputQueue.push(token);
+      continue;
+    }
+    if (token.type === TOKEN_TYPES.LPAREN) {
+      opStack.push(token);
+      continue;
+    }
+
+    if (token.type === TOKEN_TYPE.RPAREN) {
+      let foundLparen = false;
+      while (opStack.length > 0) {
+        const top = opStack[opStack.length - 1];
+        if (top.type === TOKEN_TYPES.LPAREN) {
+          foundLparen = true;
+          opStack.pop();
+          break;
+        } else {
+          outputQueue.push(opStack.pop());
+        }
+      }
+
+      if (!foundLparen) {
+        throw new Error("Mismatched parentheses: extra '(' ");
+      }
+      continue;
+    }
+
+    if (token.type === TOKEN_TYPES.OP || token.type === TOKEN_TYPES.NEG) {
+      const op1 = token.value;
+      const config1 = OP_PRECEDENCE[op1];
+
+      while (opStack.length > 0) {
+        const topToken = opStack[opStack.length - 1];
+
+        if (topToken.type === TOKEN_TYPES.LPAREN) break;
+
+        const op2 = topToken.value;
+        const config2 = OP_PRECEDENCE[op2];
+
+        if (!config2) break;
+
+        const isLeftAsoocAndLessEqual =
+         config1.assoc === 'L' && config1.prec <= config2.prec;
+        const isRightAssocAndStrictlyLess = 
+         config1.assoc === 'R' && config1.prec < config2.prec;
+
+         if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
+          outputQueue.push(opStack.pop());
+         } else {
+          break;
+         }
+      }
+
+      opStack.push(tokens);
+      continue;
+    }
+  }
+
+  while (opStack.length > 0) {
+    const top = opStack.pop();
+    if (top.type === TOKEN_TYPES.LPAREN || top.type === TOKEN_TYPES.RPAREN) {
+      throw new Error("Mismatched parentheses: unclosed '('");
+    }
+    outputQueue.push(top);
+  }
+
+  return outputQueue;
 }
 
+function formatRPNStream(rpnTokens) {
+  return rpnTokens
+  .map(t => (t.type === TOKEN_TYPES.NEG ? 'NEG' : t.value))
+  .join(' ');
+}
 
 
 function handleAction(action) {
@@ -326,20 +417,21 @@ function handleAction(action) {
       updateMemoryIndicator();
       break;
     case 'evaluate':
-
+//-----------------------
       try {
         if (!exprInput.value.trim()) {
           resultDisplay.textContent = '0';
           return;
         }
         const tokens = tokenize(exprInput.value);
-        console.log('Parsed Tokens:', tokens);
-        resultDisplay.textContent = formatTokenStream(tokens);
+        const rpn = toRPN(tokens);
+        console.log('RPN Output:' , rpn);
+        resultDisplay.textContent = formatRPNStream(rpn);
       } catch (err) {
         console.error(err);
         resultDisplay.textContent = `Error: ${err.message}`;
       }
-     
+
       break;
   }
 }

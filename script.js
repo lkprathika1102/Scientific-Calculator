@@ -293,8 +293,8 @@ const OP_PRECEDENCE = {
   '*': { prec: 2, assoc: 'L'},
   '/': { prec: 2, assoc: 'L'},
   '%': { prec: 2, assoc: 'L'},
-  'NEG': { prec: 4, assoc: 'R'}, 
-  '^': { prec: 3, assoc: 'R'},
+  'NEG': { prec: 3, assoc: 'R'}, 
+  '^': { prec: 4, assoc: 'R'},
   '!': { prec: 5, assoc: 'L'}
 
 
@@ -318,7 +318,7 @@ function toRPN(tokens) {
       continue;
     }
 
-    if (token.type === TOKEN_TYPE.FUNC) {
+    if (token.type === TOKEN_TYPES.FUNC) {
       opStack.push(token);
       continue;
     }

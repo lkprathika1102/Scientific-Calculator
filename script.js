@@ -293,7 +293,10 @@ const OP_PRECEDENCE = {
   '*': { prec: 2, assoc: 'L'},
   '/': { prec: 2, assoc: 'L'},
   '%': { prec: 2, assoc: 'L'},
-  'NEG': { prec: 3, assoc: 'R'}
+  'NEG': { prec: 4, assoc: 'R'}, 
+  '^': { prec: 3, assoc: 'R'},
+  '!': { prec: 5, assoc: 'L'}
+
 
 };
 
@@ -314,6 +317,12 @@ function toRPN(tokens) {
       outputQueue.push(token);
       continue;
     }
+
+    if (token.type === TOKEN_TYPE.FUNC) {
+      opStack.push(token);
+      continue;
+    }
+
     if (token.type === TOKEN_TYPES.LPAREN) {
       opStack.push(token);
       continue;
@@ -334,6 +343,10 @@ function toRPN(tokens) {
 
       if (!foundLparen) {
         throw new Error("Mismatched parentheses: extra ')'");
+      }
+
+      if(opStack.length > 0 && opStack[opStack.length - 1].type === TOKEN_TYPES.FUNC) {
+        outputQueue.push(opStack.pop());
       }
       continue;
     }

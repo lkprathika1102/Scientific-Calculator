@@ -437,10 +437,133 @@ function toRPN(tokens) {
   return outputQueue;
 }
 
-function formatRPNStream(rpnTokens) {
-  return rpnTokens
-  .map(t => (t.type === TOKEN_TYPES.NEG ? 'NEG' : t.value))
-  .join(' ');
+function factorial(n) {
+  if (n < 0 || !Number.isInteger(n)) {
+    throw new Error("Invalid factorial: must be non-negative integer");
+  }
+  if (n === 0 || n === 1) return 1;
+  if (n > 170) throw new Error("Overflow: factorial exceeds numeric limits");
+  let res = 1;
+  for (let i = 2; i <= n; i++) {
+    res *= i;
+  }
+  return res;
+}
+
+function evaluateRPN(rpnQueue) {
+  const stack = [];
+
+  for (let i = 0; i < rpnQueue.length; i++) {
+    const token = rpnQueue[i];
+
+
+    if (token.type === TOKEN_TYPES.NUMBER) {
+      stack.push(token.value);
+      continue;
+    }
+
+    if (token.type === TOKEN_TYPES.CONST || token.type === TOKEN_TYPES.VAR) {
+      const val = state.vars[token.value];
+      if (val === undefined) {
+        throw new Error(`Undefined variable: '${token.value}'`);
+      }
+      stack.push(val);
+      continue;
+    }
+
+    if (token.type === TOKEN_TYPES.NEG) {
+      if (stack.length < 1) throw new Error("Malformed expression")
+        stack.push(-stack.pop());
+      continue;
+    }
+
+
+    if (token.type === TOKEN_TYPES.OP && token.value === '!') {
+      if (stack.length < 1) throw new Error("Malformed Expression")
+        stack.push(factorial(stack.pop()));
+      continue;
+    }
+
+
+
+    if (token.type === TOKEN_TYPES.OP) {
+      if (stack.length < 2) throw new Error("Malformed expression")
+      const b = stack.pop();
+      const a = stack.pop();
+
+      switch (token.value) {
+        case '+':
+          stack.push(a + b);
+          break;
+        case '-':
+          stack.push(a - b);
+          break;
+        case '*':
+          stack.push(a * b);
+          break;
+        case '/':
+          if (b === 0) throw new Error("Division By Zero");
+          stack.push(a / b);
+          break;
+        case '%':
+          if (b === 0) throw new Error("Division By Zero");
+          stack.push(a % b);
+          break;
+        case '^':
+          stack.push(Math.pow(a,b));
+          break;
+        default:
+          throw new Error(`Unknown operator: '${token.value}'`);
+        
+      }
+      continue;
+    }
+
+
+    // single parameter scientific functions
+
+    if (token.type === TOKEN_TYPES.FUNC) {
+      if (stack.length < 1) throw new Error("Malformed function call");
+
+      switch (token.value) {
+        case 'sqrt': {
+          const val = stack.pop();
+          if (val < 0) throw new Error("Invalid Domain: sqrt of negative");
+          stack.push(Math.sqrt(val));
+          break;
+        }
+        case 'cbrt':
+          stack.push(Math.cbrt(stack.pop()));
+          break;
+        case 'abs':
+          stack.push(Math.abs(stack.pop()));
+          break;
+        case 'ln': {
+          const val = stack.pop();
+          if (val <= 0) throw new Error("Invalid domain: ln of non-positive");
+          stack.push(Math.log(val));
+          break;
+        }
+        case 'log': {
+          const val = stack.pop();
+          if (val <= 0) throw new Error("Invalid Domain: log of non positive");
+          stack.push(Math.log10(val));
+          break;
+        }
+        default:
+          //------trigonometric and argument functions to be done next
+          throw new Error(`Function '${token.value}' execution to be done next`);
+        
+      }
+      continue;
+    }
+  }
+
+  if (stack.length !== 1) {
+    throw new Error("Malformed expression");
+  }
+
+  return stack[0];
 }
 
 

@@ -310,7 +310,7 @@ function toRPN(tokens) {
   const outputQueue = [];
   const opStack = [];
 
-  for(let i = 0; < tokens.length; i++) {
+  for(let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
 
     if (
@@ -366,7 +366,7 @@ function toRPN(tokens) {
 
 
     if (token.type === TOKEN_TYPES.RPAREN) {
-      letfoundLparen = false;
+      let foundLparen = false;
       while (opStack.length > 0) {
         const top = opStack[opStack.length - 1];
         if (top.type === TOKEN_TYPES.LPAREN) {
@@ -379,11 +379,11 @@ function toRPN(tokens) {
       }
 
       if (!foundLparen) {
-        throw new Error("Mismatched parentheses: extra '('");
+        throw new Error("Mismatched parentheses: extra ')'");
       }
 
 
-      if (opstack. length > 0 && opstack[opStack.length - 1].type === TOKEN_TYPES.FUNC) {
+      if (opStack.length > 0 && opStack[opStack.length - 1].type === TOKEN_TYPES.FUNC) {
         const fn = opStack.pop();
         const expected = FUNC_ARITY[fn.value];
         if (expected !== undefined && fn.args !== expected) {
@@ -400,7 +400,7 @@ function toRPN(tokens) {
       const config1 = OP_PRECEDENCE[op1];
 
       while (opStack.length > 0) {
-        const topToken = opStack[opstack.length - 1];
+        const topToken = opStack[opStack.length - 1];
 
         if (topToken.type === TOKEN_TYPES.LPAREN) break;
 
@@ -412,7 +412,7 @@ function toRPN(tokens) {
         const isLeftAssocAndLessEqual = 
          config1.assoc === 'L' && config1.prec <= config2.prec;
         const isRightAssocAndStrictlyLess =
-         config.assoc === 'R' && config1.prec < config2.prec;
+         config1.assoc === 'R' && config1.prec < config2.prec;
 
         if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
           outputQueue.push(opStack.pop());
@@ -437,7 +437,7 @@ function toRPN(tokens) {
   return outputQueue;
 }
 
-function formatRPNStream(rpnToken) {
+function formatRPNStream(rpnTokens) {
   return rpnTokens
   .map(t => (t.type === TOKEN_TYPES.NEG ? 'NEG' : t.value))
   .join(' ');

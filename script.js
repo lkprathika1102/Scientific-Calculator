@@ -300,26 +300,62 @@ const OP_PRECEDENCE = {
 
 };
 
-// shunting yard
+const FUNC_ARITY = {
+  'sin': 1, 'cos': 1, 'tan': 1, 'asin': 1, 'acos': 1, 'atan': 1,
+  'ln': 1, 'log': 1, 'sqrt': 1, 'cbrt': 1, 'abs': 1,
+  'root': 2, 'nCr': 2, 'nPr': 2, 'gcd': 2, 'lcm': 2
+};
+
 function toRPN(tokens) {
   const outputQueue = [];
   const opStack = [];
 
-
-  for (let i = 0; i < tokens.length; i++) {
+  for(let i = 0; < tokens.length; i++) {
     const token = tokens[i];
 
     if (
       token.type === TOKEN_TYPES.NUMBER ||
       token.type === TOKEN_TYPES.CONST ||
-      token.type === TOKEN_TYPES.VAR 
+      token.type === TOKEN_TYPES.VAR
+
     ) {
       outputQueue.push(token);
       continue;
     }
 
+
     if (token.type === TOKEN_TYPES.FUNC) {
-      opStack.push(token);
+      opStack.push({ ...token, args: 1 });
+      continue;
+    }
+
+
+    if (token.type === TOKEN_TYPES.COMMA) {
+      let foundLparen = false;
+      while (opStack.length > 0) {
+        const top = opStack[opStack.length - 1];
+        if (top.type === TOKEN_TYPES.LPAREN) {
+          foundLparen = true;
+          break;
+        } else {
+          outputQueue.push (opStack.pop());
+        }
+      }
+
+
+      if (!foundLparen) {
+        throw new Error("Misplaced comma: not inside parentheses");
+
+      }
+
+      const lparenIndex = opStack.length - 1;
+      const parentFunc = lparenIndex > 0 ? opStack[lparenIndex - 1] : null;
+
+      if (!parentFunc || parentFunc.type !== TOKEN_TYPES.FUNC) {
+        throw new Error("Misplaced comma: commas are only allowed inside function calls");
+      }
+
+      parentFunc.args++;
       continue;
     }
 
@@ -328,8 +364,9 @@ function toRPN(tokens) {
       continue;
     }
 
+
     if (token.type === TOKEN_TYPES.RPAREN) {
-      let foundLparen = false;
+      letfoundLparen = false;
       while (opStack.length > 0) {
         const top = opStack[opStack.length - 1];
         if (top.type === TOKEN_TYPES.LPAREN) {
@@ -342,11 +379,18 @@ function toRPN(tokens) {
       }
 
       if (!foundLparen) {
-        throw new Error("Mismatched parentheses: extra ')'");
+        throw new Error("Mismatched parentheses: extra '('");
       }
 
-      if(opStack.length > 0 && opStack[opStack.length - 1].type === TOKEN_TYPES.FUNC) {
-        outputQueue.push(opStack.pop());
+
+      if (opstack. length > 0 && opstack[opStack.length - 1].type === TOKEN_TYPES.FUNC) {
+        const fn = opStack.pop();
+        const expected = FUNC_ARITY[fn.value];
+        if (expected !== undefined && fn.args !== expected) {
+          throw new Error(`Function '${fn.value}' expects ${expected} arguments, but received ${fn.args}`);
+
+        }
+        outputQueue.push(fn);
       }
       continue;
     }
@@ -356,7 +400,7 @@ function toRPN(tokens) {
       const config1 = OP_PRECEDENCE[op1];
 
       while (opStack.length > 0) {
-        const topToken = opStack[opStack.length - 1];
+        const topToken = opStack[opstack.length - 1];
 
         if (topToken.type === TOKEN_TYPES.LPAREN) break;
 
@@ -365,16 +409,16 @@ function toRPN(tokens) {
 
         if (!config2) break;
 
-        const isLeftAssocAndLessEqual =
+        const isLeftAssocAndLessEqual = 
          config1.assoc === 'L' && config1.prec <= config2.prec;
-        const isRightAssocAndStrictlyLess = 
-         config1.assoc === 'R' && config1.prec < config2.prec;
+        const isRightAssocAndStrictlyLess =
+         config.assoc === 'R' && config1.prec < config2.prec;
 
-         if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
+        if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
           outputQueue.push(opStack.pop());
-         } else {
+        } else {
           break;
-         }
+        }
       }
 
       opStack.push(token);
@@ -393,7 +437,7 @@ function toRPN(tokens) {
   return outputQueue;
 }
 
-function formatRPNStream(rpnTokens) {
+function formatRPNStream(rpnToken) {
   return rpnTokens
   .map(t => (t.type === TOKEN_TYPES.NEG ? 'NEG' : t.value))
   .join(' ');

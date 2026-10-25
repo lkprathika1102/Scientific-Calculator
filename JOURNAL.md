@@ -33,3 +33,18 @@ https://lapse.hackclub.com/timelapse/_H_PX8yBDJ08
 Time Spent - 1.5 Hours
 
 https://lapse.hackclub.com/timelapse/LMeiu8ChjXfp
+
+----------------------------------
+
+### 23rd October 2026 -
+
+Time Spent - 1.5 Hours
+
+https://lapse.hackclub.com/timelapse/LMeiu8ChjXfp
+
+### 24th October 2026 -
+
+Time Spent - 3 Hours
+
+https://lapse.hackclub.com/timelapse/Gu03QADFEl-w
+

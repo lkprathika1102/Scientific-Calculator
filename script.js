@@ -411,7 +411,7 @@ function toRPN(tokens) {
 
         const isLeftAssocAndLessEqual = 
          config1.assoc === 'L' && config1.prec <= config2.prec;
-        const isRightAssocAndStrictlyLess = 
+        const isRightAssocAndStrictlyLess =
          config1.assoc === 'R' && config1.prec < config2.prec;
 
         if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
@@ -449,6 +449,79 @@ function factorial(n) {
   }
   return res;
 }
+//-----------------------------
+function toRadians(angle) {
+  return state.angleMode === 'DEG' ? (angle * Math.PI) /180 : angle;
+
+}
+
+function fromRadians(angle) {
+  return state.angleMode === 'DEG' ? (angle * 180) / MathPI : angle;
+}
+
+function sanitizeFloat(val) {
+  if (typeof val !== 'number' || !isFinite(val)) return val;
+  if (Math.abs(val) < 1e-12) return 0;
+  return arseFloat(val.toPrecision(12));
+}
+
+function calcNPr(n,r) {
+  if (n < 0 || r < 0 || !Number.isInteger(n) || !Number.isInteger(r) || r > n) {
+    throw new Error("Invalid parameters for nPr");
+  }
+  let res = 1;
+  for (let i = 0; i < r; i++) {
+    res *= (n - i);
+  }
+  return res;
+}
+
+function calcNCr(n,r) {
+  if (n < 0 || r < 0 || !Number.isInteger(n) || !Number.isInteger(r) || r > n) {
+    throw new Error("Invalid parameters for nCr");
+  }
+  if (r === 0 || r === n) return 1;
+  if (r > n / 2) r = n - r;
+  let res = 1;
+  for (let i = 1; i <= r; i++) {
+    res = (res * (n - i + 1)) /i;
+  }
+  return Math.round(res);
+}
+
+//. gcd
+function calcGcd(a, b) {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  if (!Number.isInteger(a) || !Number.isInteger(b)) {
+    throw new Error("gcd requires integers");
+  }
+  while (b !== 0) {
+    const temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+}
+
+function calcLcm(a, b) {
+  if (!Number.isInteger(a) || !Number.isInteger(b)) {
+    throw new Error("lcm requires integers");
+  }
+  if (a === 0 || b === 0) return 0;
+  return Math.abs(a * b) / calcGcd(a, b);
+}
+
+function calcRoot(val,base) {
+  if (base === 0) throw new Error("Zero degree root is undefined");
+  if (val < 0 && base % 2 === 0) throw new Error("Invalid domain: even root of negative number");
+  if (val < 0) return -Math.pow(-val, 1 / base);
+  return Math.pow(val, 1 / base);
+
+}
+
+// rpn stack evaluor
+
 
 function evaluateRPN(rpnQueue) {
   const stack = [];
@@ -472,14 +545,14 @@ function evaluateRPN(rpnQueue) {
     }
 
     if (token.type === TOKEN_TYPES.NEG) {
-      if (stack.length < 1) throw new Error("Malformed expression");
+      if (stack.length < 1) throw new Error("Malformed expression")
         stack.push(-stack.pop());
       continue;
     }
 
 
     if (token.type === TOKEN_TYPES.OP && token.value === '!') {
-      if (stack.length < 1) throw new Error("Malformed Expression");
+      if (stack.length < 1) throw new Error("Malformed Expression")
         stack.push(factorial(stack.pop()));
       continue;
     }
@@ -487,7 +560,7 @@ function evaluateRPN(rpnQueue) {
 
 
     if (token.type === TOKEN_TYPES.OP) {
-      if (stack.length < 2) throw new Error("Malformed expression");
+      if (stack.length < 2) throw new Error("Malformed expression")
       const b = stack.pop();
       const a = stack.pop();
 
@@ -605,12 +678,8 @@ function handleAction(action) {
         }
         const tokens = tokenize(exprInput.value);
         const rpn = toRPN(tokens);
-        const answer = evaluateRPN(rpn);
-
-        state.lastResult = answer;
-        state.vars.ans = answer;
-
-        resultDisplay.textContent = answer;
+        console.log('RPN Output:' , rpn);
+        resultDisplay.textContent = formatRPNStream(rpn);
       } catch (err) {
         console.error(err);
         resultDisplay.textContent = `Error: ${err.message}`;

@@ -371,6 +371,7 @@ function toRPN(tokens) {
         const top = opStack[opStack.length - 1];
         if (top.type === TOKEN_TYPES.LPAREN) {
           foundLparen = true;
+          opStack.pop();
           break;
         } else {
           outputQueue.push(opStack.pop());
@@ -450,7 +451,7 @@ function factorial(n) {
 }
 //-----------------------------
 function toRadians(angle) {
-  return state.angleMode === 'DEG' ? (angle * Math.PI) /180 : angle;
+  return state.angleMode === 'DEG' ? (angle * Math.PI) / 180 : angle;
 
 }
 

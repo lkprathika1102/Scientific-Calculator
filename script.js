@@ -67,7 +67,6 @@ function allClear() {
   exprInput.focus();
 }
 
-
 const TOKEN_TYPES = {
   NUMBER: 'NUMBER',
   FUNC: 'FUNC',  
@@ -81,9 +80,7 @@ const TOKEN_TYPES = {
   ASSIGN: 'ASSIGN'      // =
 };
 
-
 const BASIC_OPS = new Set(['+', '-', '*', '/', '^', '%', '!']);
-
 
 const KNOWN_FUNCS = new Set([
   'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
@@ -103,7 +100,6 @@ function isAlpha(char) {
 }
 //------------------------------------------------
 
-
 function rawScan(input) {
   const tokens = [];
   let i = 0;
@@ -112,7 +108,6 @@ function rawScan(input) {
   while (i < len) {
     const char = input[i];
 
-    
     if (char === ' ' || char === '\t' || char === '\n') {
       i++;
       continue;
@@ -158,7 +153,6 @@ function rawScan(input) {
         throw new Error(`Unknown Identifier: '${identStr}.'`);
       }
       continue;
-
     }
 
     //  Basic operators
@@ -170,7 +164,6 @@ function rawScan(input) {
       i++;
       continue;
     }
-
 
     if (char === '(') {
       tokens.push({ type: TOKEN_TYPES.LPAREN, value: '(' });
@@ -184,13 +177,11 @@ function rawScan(input) {
       continue;
     }
 
-
     if (char === ',') {
       tokens.push({ type: TOKEN_TYPES.COMMA, value: ',' });
       i++;
       continue;
     }
-
 
     if (char === '=') {
       tokens.push({ type: TOKEN_TYPES.ASSIGN, value: '=' });
@@ -203,7 +194,6 @@ function rawScan(input) {
 
   return tokens;
 }
-
 
 function resolveUnaryMinus(tokens) {
   const result = [];
@@ -225,7 +215,6 @@ function resolveUnaryMinus(tokens) {
         result.push({ type: TOKEN_TYPES.NEG, value: 'NEG'});
         continue;
       }
-
     }
 
     result.push(token);
@@ -235,7 +224,6 @@ function resolveUnaryMinus(tokens) {
 }
 
 // for implicit multiplication
-
 function injectImplicitMultiplication(tokens) {
   const result = [];
 
@@ -246,6 +234,8 @@ function injectImplicitMultiplication(tokens) {
     TOKEN_TYPES.RPAREN
   ]);
 
+
+  
   const triggersRight = new Set([
     TOKEN_TYPES.NUMBER,
     TOKEN_TYPES.CONST,
@@ -254,13 +244,14 @@ function injectImplicitMultiplication(tokens) {
     TOKEN_TYPES.LPAREN
   ]);
 
+
+  
   for (let i = 0; i < tokens.length; i++) {
     const curr = tokens[i];
     result.push(curr);
 
     if (i < tokens.length - 1 ) {
       const next = tokens[i + 1];
-
 
       if (curr.type === TOKEN_TYPES.OP && curr.value === '!') {
         if (triggersRight.has(next.type)) {
@@ -271,14 +262,11 @@ function injectImplicitMultiplication(tokens) {
       if (triggersLeft.has(curr.type) && triggersRight.has(next.type)) {
         result.push({ type: TOKEN_TYPES.OP, value: '*'});
       }
-
-
     }
   }
 
   return result;
 }
-
 
 function tokenize(input) {
   const rawTokens = rawScan(input);
@@ -296,8 +284,6 @@ const OP_PRECEDENCE = {
   'NEG': { prec: 3, assoc: 'R'}, 
   '^': { prec: 4, assoc: 'R'},
   '!': { prec: 5, assoc: 'L'}
-
-
 };
 
 const FUNC_ARITY = {
@@ -317,18 +303,15 @@ function toRPN(tokens) {
       token.type === TOKEN_TYPES.NUMBER ||
       token.type === TOKEN_TYPES.CONST ||
       token.type === TOKEN_TYPES.VAR
-
     ) {
       outputQueue.push(token);
       continue;
     }
 
-
     if (token.type === TOKEN_TYPES.FUNC) {
       opStack.push({ ...token, args: 1 });
       continue;
     }
-
 
     if (token.type === TOKEN_TYPES.COMMA) {
       let foundLparen = false;
@@ -338,14 +321,12 @@ function toRPN(tokens) {
           foundLparen = true;
           break;
         } else {
-          outputQueue.push (opStack.pop());
+          outputQueue.push(opStack.pop());
         }
       }
 
-
       if (!foundLparen) {
         throw new Error("Misplaced comma: not inside parentheses");
-
       }
 
       const lparenIndex = opStack.length - 1;
@@ -364,7 +345,6 @@ function toRPN(tokens) {
       continue;
     }
 
-
     if (token.type === TOKEN_TYPES.RPAREN) {
       let foundLparen = false;
       while (opStack.length > 0) {
@@ -382,13 +362,11 @@ function toRPN(tokens) {
         throw new Error("Mismatched parentheses: extra ')'");
       }
 
-
       if (opStack.length > 0 && opStack[opStack.length - 1].type === TOKEN_TYPES.FUNC) {
         const fn = opStack.pop();
         const expected = FUNC_ARITY[fn.value];
         if (expected !== undefined && fn.args !== expected) {
           throw new Error(`Function '${fn.value}' expects ${expected} arguments, but received ${fn.args}`);
-
         }
         outputQueue.push(fn);
       }
@@ -452,7 +430,6 @@ function factorial(n) {
 //-----------------------------
 function toRadians(angle) {
   return state.angleMode === 'DEG' ? (angle * Math.PI) / 180 : angle;
-
 }
 
 function fromRadians(angle) {
@@ -484,7 +461,7 @@ function calcNCr(n,r) {
   if (r > n / 2) r = n - r;
   let res = 1;
   for (let i = 1; i <= r; i++) {
-    res = (res * (n - i + 1)) /i;
+    res = (res * (n - i + 1)) / i;
   }
   return Math.round(res);
 }
@@ -517,7 +494,6 @@ function calcRoot(val,base) {
   if (val < 0 && base % 2 === 0) throw new Error("Invalid domain: even root of negative number");
   if (val < 0) return -Math.pow(-val, 1 / base);
   return Math.pow(val, 1 / base);
-
 }
 
 // rpn stack evaluor
@@ -531,7 +507,6 @@ function evaluateRPN(rpnQueue) {
       stack.push(token.value);
       continue;
     }
-
 
     if (token.type === TOKEN_TYPES.CONST || token.type === TOKEN_TYPES.VAR) {
       const val = state.vars[token.value];
@@ -547,7 +522,6 @@ function evaluateRPN(rpnQueue) {
       stack.push(-stack.pop());
       continue;
     }
-
 
     if (token.type === TOKEN_TYPES.OP && token.value === '!') {
       if (stack.length < 1) throw new Error("Malformed expression");
@@ -615,7 +589,6 @@ function evaluateRPN(rpnQueue) {
         continue;
       }
 
-
       if (stack.length < 1) throw new Error("Malformed function call");
       const val = stack.pop();
 
@@ -633,7 +606,6 @@ function evaluateRPN(rpnQueue) {
           stack.push(sanitizeFloat(Math.tan(toRadians(val))));
           break;
         }
-
         case 'asin':
           if (val < -1 || val > 1 ) throw new Error("Invalid domain for asin [-1, 1]");
           stack.push(sanitizeFloat(fromRadians(Math.asin(val))));
@@ -665,8 +637,6 @@ function evaluateRPN(rpnQueue) {
           break;
         default:
           throw new Error(`Unknown function: '${token.value}'`);
-
-          
       }
       continue;
     }
@@ -689,13 +659,13 @@ function parseAndEvaluate(inputStr) {
 
   const assignIndices = [];
   for (let i = 0; i < rawTokens.length; i++) {
-    if (rawToken[i].type === TOKEN_TYPES.ASSIGN) {
+    if (rawTokens[i].type === TOKEN_TYPES.ASSIGN) {
       assignIndices.push(i);
     }
   }
 
   if (assignIndices.length === 0) {
-    const rpn = toRPN(rawToken);
+    const rpn = toRPN(rawTokens);
     const answer = evaluateRPN(rpn);
     state.lastResult = answer;
     state.vars.ans = answer;
@@ -704,19 +674,16 @@ function parseAndEvaluate(inputStr) {
 
   if (assignIndices.length > 1) {
     throw new Error("Invalid assignment: multiple '=' operators encountered");
-
   }
 
   const assignIndex = assignIndices[0];
 
   if (assignIndex !== 1 || rawTokens[0].type !== TOKEN_TYPES.VAR) {
-    if (rawToken[0].type === TOKEN_TYPES.CONST) {
+    if (rawTokens[0].type === TOKEN_TYPES.CONST) {
       throw new Error(`Cannot assign to constant '${rawTokens[0].value}'`);
     }
-    throw new Error("Invalid assignmnt: left side must be a variable (x, y, or z)");
-
+    throw new Error("Invalid assignment: left side must be a variable (x, y, or z)");
   }
-
 
   const targetVar = rawTokens[0].value;
 
@@ -724,6 +691,7 @@ function parseAndEvaluate(inputStr) {
     throw new Error(`Cannot assign to system variable '${targetVar}'`);
   }
 
+  const rhsTokens = rawTokens.slice(assignIndex + 1);
   const rpn = toRPN(rhsTokens);
   const answer = evaluateRPN(rpn);
 
@@ -733,7 +701,6 @@ function parseAndEvaluate(inputStr) {
 
   return `${targetVar} = ${answer}`;
 }
-
 
 function handleAction(action) {
   switch (action) {
@@ -773,11 +740,8 @@ function handleAction(action) {
         resultDisplay.textContent = `Error: ${err.message}`;
       }
       break;
-    }
   }
-
-
-      
+}
 
 keypad.addEventListener('click', (e) => {
   const target = e.target.closest('button');

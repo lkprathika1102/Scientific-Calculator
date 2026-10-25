@@ -411,7 +411,7 @@ function toRPN(tokens) {
 
         const isLeftAssocAndLessEqual = 
          config1.assoc === 'L' && config1.prec <= config2.prec;
-        const isRightAssocAndStrictlyLess =
+        const isRightAssocAndStrictlyLess = 
          config1.assoc === 'R' && config1.prec < config2.prec;
 
         if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
@@ -472,14 +472,14 @@ function evaluateRPN(rpnQueue) {
     }
 
     if (token.type === TOKEN_TYPES.NEG) {
-      if (stack.length < 1) throw new Error("Malformed expression")
+      if (stack.length < 1) throw new Error("Malformed expression");
         stack.push(-stack.pop());
       continue;
     }
 
 
     if (token.type === TOKEN_TYPES.OP && token.value === '!') {
-      if (stack.length < 1) throw new Error("Malformed Expression")
+      if (stack.length < 1) throw new Error("Malformed Expression");
         stack.push(factorial(stack.pop()));
       continue;
     }
@@ -487,7 +487,7 @@ function evaluateRPN(rpnQueue) {
 
 
     if (token.type === TOKEN_TYPES.OP) {
-      if (stack.length < 2) throw new Error("Malformed expression")
+      if (stack.length < 2) throw new Error("Malformed expression");
       const b = stack.pop();
       const a = stack.pop();
 
@@ -605,8 +605,12 @@ function handleAction(action) {
         }
         const tokens = tokenize(exprInput.value);
         const rpn = toRPN(tokens);
-        console.log('RPN Output:' , rpn);
-        resultDisplay.textContent = formatRPNStream(rpn);
+        const answer = evaluateRPN(rpn);
+
+        state.lastResult = answer;
+        state.vars.ans = answer;
+
+        resultDisplay.textContent = answer;
       } catch (err) {
         console.error(err);
         resultDisplay.textContent = `Error: ${err.message}`;

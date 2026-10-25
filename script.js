@@ -182,7 +182,10 @@ function rawScan(input) {
       i++;
       continue;
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> bd356d1 (add a detailed readme.md)
     if (char === '=') {
       tokens.push({ type: TOKEN_TYPES.ASSIGN, value: '=' });
       i++;
@@ -741,7 +744,10 @@ function handleAction(action) {
       }
       break;
   }
+<<<<<<< HEAD
 }
+=======
+>>>>>>> bd356d1 (add a detailed readme.md)
 
 keypad.addEventListener('click', (e) => {
   const target = e.target.closest('button');

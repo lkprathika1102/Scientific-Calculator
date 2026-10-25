@@ -765,28 +765,19 @@ function handleAction(action) {
       updateMemoryIndicator();
       break;
     case 'evaluate':
-//-----------------------
       try {
-        if (!exprInput.value.trim()) {
-          resultDisplay.textContent = '0';
-          return;
-        }
-        const tokens = tokenize(exprInput.value);
-        const rpn = toRPN(tokens);
-        const answer = evaluateRPN(rpn);
-
-        state.lastResult = answer;
-        state.vars.ans = answer;
-
-        resultDisplay.textContent = answer;
+        const output = parseAndEvaluate(exprInput.value);
+        resultDisplay.textContent = output;
       } catch (err) {
         console.error(err);
         resultDisplay.textContent = `Error: ${err.message}`;
       }
-
       break;
+    }
   }
-}
+
+
+      
 
 keypad.addEventListener('click', (e) => {
   const target = e.target.closest('button');

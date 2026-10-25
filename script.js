@@ -679,6 +679,62 @@ function evaluateRPN(rpnQueue) {
   return sanitizeFloat(stack[0]);
 }
 
+const ASSIGNABLE_VARS = new Set(['x', 'y', 'z']);
+
+function parseAndEvaluate(inputStr) {
+  const trimmed = inputStr.trim();
+  if (!trimmed) return '0';
+
+  const rawTokens = tokenize(trimmed);
+
+  const assignIndices = [];
+  for (let i = 0; i < rawTokens.length; i++) {
+    if (rawToken[i].type === TOKEN_TYPES.ASSIGN) {
+      assignIndices.push(i);
+    }
+  }
+
+  if (assignIndices.length === 0) {
+    const rpn = toRPN(rawToken);
+    const answer = evaluateRPN(rpn);
+    state.lastResult = answer;
+    state.vars.ans = answer;
+    return answer;
+  }
+
+  if (assignIndices.length > 1) {
+    throw new Error("Invalid assignment: multiple '=' operators encountered");
+
+  }
+
+  const assignIndex = assignIndices[0];
+
+  if (assignIndex !== 1 || rawTokens[0].type !== TOKEN_TYPES.VAR) {
+    if (rawToken[0].type === TOKEN_TYPES.CONST) {
+      throw new Error(`Cannot assign to constant '${rawTokens[0].value}'`);
+    }
+    throw new Error("Invalid assignmnt: left side must be a variable (x, y, or z)");
+
+  }
+
+
+  const targetVar = rawTokens[0].value;
+
+  if (!ASSIGNABLE_VARS.has(targetVar)) {
+    throw new Error(`Cannot assign to system variable '${targetVar}'`);
+  }
+
+  const rpn = toRPN(rhsTokens);
+  const answer = evaluateRPN(rpn);
+
+  state.vars[targetVar] = answer;
+  state.lastResult = answer;
+  state.vars.ans = answer;
+
+  return `${targetVar} = ${answer}`;
+}
+
+
 function handleAction(action) {
   switch (action) {
     case 'toggle-mode':

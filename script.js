@@ -371,7 +371,6 @@ function toRPN(tokens) {
         const top = opStack[opStack.length - 1];
         if (top.type === TOKEN_TYPES.LPAREN) {
           foundLparen = true;
-          opStack.pop();
           break;
         } else {
           outputQueue.push(opStack.pop());
@@ -411,7 +410,7 @@ function toRPN(tokens) {
 
         const isLeftAssocAndLessEqual = 
          config1.assoc === 'L' && config1.prec <= config2.prec;
-        const isRightAssocAndStrictlyLess =
+        const isRightAssocAndStrictlyLess = 
          config1.assoc === 'R' && config1.prec < config2.prec;
 
         if (isLeftAssocAndLessEqual || isRightAssocAndStrictlyLess) {
@@ -456,13 +455,13 @@ function toRadians(angle) {
 }
 
 function fromRadians(angle) {
-  return state.angleMode === 'DEG' ? (angle * 180) / MathPI : angle;
+  return state.angleMode === 'DEG' ? (angle * 180) / Math.PI : angle;
 }
 
 function sanitizeFloat(val) {
   if (typeof val !== 'number' || !isFinite(val)) return val;
   if (Math.abs(val) < 1e-12) return 0;
-  return arseFloat(val.toPrecision(12));
+  return parseFloat(val.toPrecision(12));
 }
 
 function calcNPr(n,r) {
@@ -533,7 +532,7 @@ function evaluateRPN(rpnQueue) {
     }
 
 
-    if (token.type === TOKEN_TYPESCONST || token.type === TOKEN+TYPES.VAR) {
+    if (token.type === TOKEN_TYPES.CONST || token.type === TOKEN_TYPES.VAR) {
       const val = state.vars[token.value];
       if (val === undefined) {
         throw new Error(`Undefined variable: '${token.value}'`);
@@ -639,7 +638,7 @@ function evaluateRPN(rpnQueue) {
           stack.push(sanitizeFloat(fromRadians(Math.asin(val))));
           break;
         case 'acos':
-          if (val < 1 || val > 1) throw new Error("Invalid domain for acos [-1, 1]");
+          if (val < -1 || val > 1) throw new Error("Invalid domain for acos [-1, 1]");
           stack.push(sanitizeFloat(fromRadians(Math.acos(val))));
           break;
         case 'atan':
@@ -673,7 +672,7 @@ function evaluateRPN(rpnQueue) {
   }
 
   if (stack.length !== 1) {
-    throw new Error("Malformed expression")
+    throw new Error("Malformed expression");
   }
 
   return sanitizeFloat(stack[0]);
@@ -717,8 +716,12 @@ function handleAction(action) {
         }
         const tokens = tokenize(exprInput.value);
         const rpn = toRPN(tokens);
-        console.log('RPN Output:' , rpn);
-        resultDisplay.textContent = formatRPNStream(rpn);
+        const answer = evaluateRPN(rpn);
+
+        state.lastResult = answer;
+        state.vars.ans = answer;
+
+        resultDisplay.textContent = answer;
       } catch (err) {
         console.error(err);
         resultDisplay.textContent = `Error: ${err.message}`;

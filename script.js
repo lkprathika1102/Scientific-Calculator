@@ -521,21 +521,19 @@ function calcRoot(val,base) {
 }
 
 // rpn stack evaluor
-
-
 function evaluateRPN(rpnQueue) {
   const stack = [];
 
   for (let i = 0; i < rpnQueue.length; i++) {
     const token = rpnQueue[i];
 
-
     if (token.type === TOKEN_TYPES.NUMBER) {
       stack.push(token.value);
       continue;
     }
 
-    if (token.type === TOKEN_TYPES.CONST || token.type === TOKEN_TYPES.VAR) {
+
+    if (token.type === TOKEN_TYPESCONST || token.type === TOKEN+TYPES.VAR) {
       const val = state.vars[token.value];
       if (val === undefined) {
         throw new Error(`Undefined variable: '${token.value}'`);
@@ -545,100 +543,141 @@ function evaluateRPN(rpnQueue) {
     }
 
     if (token.type === TOKEN_TYPES.NEG) {
-      if (stack.length < 1) throw new Error("Malformed expression")
-        stack.push(-stack.pop());
+      if (stack.length < 1) throw new Error("Malformed Expression");
+      stack.push(-stack.pop());
       continue;
     }
 
 
     if (token.type === TOKEN_TYPES.OP && token.value === '!') {
-      if (stack.length < 1) throw new Error("Malformed Expression")
-        stack.push(factorial(stack.pop()));
+      if (stack.length < 1) throw new Error("Malformed expression");
+      stack.push(factorial(stack.pop()));
       continue;
     }
 
-
-
     if (token.type === TOKEN_TYPES.OP) {
-      if (stack.length < 2) throw new Error("Malformed expression")
+      if (stack.length < 2) throw new Error("Malformed Expression");
       const b = stack.pop();
       const a = stack.pop();
 
       switch (token.value) {
         case '+':
-          stack.push(a + b);
+          stack.push(sanitizeFloat(a + b));
           break;
         case '-':
-          stack.push(a - b);
+          stack.push(sanitizeFloat(a - b));
           break;
         case '*':
-          stack.push(a * b);
+          stack.push(sanitizeFloat(a * b));
           break;
         case '/':
-          if (b === 0) throw new Error("Division By Zero");
-          stack.push(a / b);
+          if (b === 0) throw new Error("Division by Zero");
+          stack.push(sanitizeFloat(a / b));
           break;
         case '%':
-          if (b === 0) throw new Error("Division By Zero");
+          if (b === 0) throw new Error("Division by Zero");
           stack.push(a % b);
           break;
         case '^':
-          stack.push(Math.pow(a,b));
+          stack.push(sanitizeFloat(Math.pow(a, b)));
           break;
         default:
-          throw new Error(`Unknown operator: '${token.value}'`);
-        
+          throw new Error(`Unknown Operator: '${token.value}'`);
       }
+
       continue;
     }
 
-
-    // single parameter scientific functions
-
     if (token.type === TOKEN_TYPES.FUNC) {
+
+      if (FUNC_ARITY[token.value] === 2) {
+        if (stack.length < 2) throw new Error("Malformed function call");
+        const b = stack.pop();
+        const a = stack.pop();
+
+        switch (token.value) {
+          case 'root':
+            stack.push(sanitizeFloat(calcRoot(a, b)));
+            break;
+          case 'nCr':
+            stack.push(calcNCr(a, b));
+            break;
+          case 'nPr':
+            stack.push(calcNPr(a, b));
+            break;
+          case 'gcd':
+            stack.push(calcGcd(a, b));
+            break;
+          case 'lcm':
+            stack.push(calcLcm(a, b));
+            break;
+        }
+        continue;
+      }
+
+
       if (stack.length < 1) throw new Error("Malformed function call");
+      const val = stack.pop();
 
       switch (token.value) {
-        case 'sqrt': {
-          const val = stack.pop();
-          if (val < 0) throw new Error("Invalid Domain: sqrt of negative");
-          stack.push(Math.sqrt(val));
+        case 'sin':
+          stack.push(sanitizeFloat(Math.sin(toRadians(val))));
+          break;
+        case 'cos':
+          stack.push(sanitizeFloat(Math.cos(toRadians(val))));
+          break;
+        case 'tan': {
+          if (state.angleMode === 'DEG' && Math.abs((val - 90) % 180) < 1e-9) {
+            throw new Error("Undefined: tan(90)");
+          }
+          stack.push(sanitizeFloat(Math.tan(toRadians(val))));
           break;
         }
+
+        case 'asin':
+          if (val < -1 || val > 1 ) throw new Error("Invalid domain for asin [-1, 1]");
+          stack.push(sanitizeFloat(fromRadians(Math.asin(val))));
+          break;
+        case 'acos':
+          if (val < 1 || val > 1) throw new Error("Invalid domain for acos [-1, 1]");
+          stack.push(sanitizeFloat(fromRadians(Math.acos(val))));
+          break;
+        case 'atan':
+          stack.push(sanitizeFloat(fromRadians(Math.atan(val))));
+          break;
+        case 'sqrt':
+          if (val < 0) throw new Error("Invalid domain: sqrt of negative");
+          stack.push(sanitizeFloat(Math.sqrt(val)));
+          break;
         case 'cbrt':
-          stack.push(Math.cbrt(stack.pop()));
+          stack.push(sanitizeFloat(Math.cbrt(val)));
           break;
         case 'abs':
-          stack.push(Math.abs(stack.pop()));
+          stack.push(Math.abs(val));
           break;
-        case 'ln': {
-          const val = stack.pop();
+        case 'ln':
           if (val <= 0) throw new Error("Invalid domain: ln of non-positive");
-          stack.push(Math.log(val));
+          stack.push(sanitizeFloat(Math.log(val)));
           break;
-        }
-        case 'log': {
-          const val = stack.pop();
-          if (val <= 0) throw new Error("Invalid Domain: log of non positive");
-          stack.push(Math.log10(val));
+        case 'log':
+          if (val <= 0) throw new Error("Invalid Domain: log of non-positive");
+          stack.push(sanitizeFloat(Math.log10(val)));
           break;
-        }
         default:
-          //------trigonometric and argument functions to be done next
-          throw new Error(`Function '${token.value}' execution to be done next`);
-        
+          throw new Error(`Unknown function: '${token.value}'`);
+
+          
       }
       continue;
     }
   }
 
   if (stack.length !== 1) {
-    throw new Error("Malformed expression");
+    throw new Error("Malformed expression")
   }
 
-  return stack[0];
+  return sanitizeFloat(stack[0]);
 }
-
 
 function handleAction(action) {
   switch (action) {

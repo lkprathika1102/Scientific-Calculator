@@ -40,3 +40,7 @@ Overall, I learnt a lot while making this amazing project and it has together be
 
 
 ## License
+
+Open Source with MIT Licence
+
+https://github.com/lkprathika1102/Scientific-Calculator/blob/main/LICENSE

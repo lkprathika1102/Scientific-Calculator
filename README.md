@@ -14,7 +14,15 @@ The calculator is fully functional as of now, and I have patched up almost all o
 
 Overall, I learnt a lot while making this amazing project and it has together been an wholesome experience, to build a common thing which already exists everywhere and we use it whether we know it or not.
 
+## Why it fits the theme ??
 
+ this project and has its own custom parser, tokenizer, Abstract Syntax Tree (AST), and evaluation engine, which technically makes it a 
+ 
+"mathematics parser bot"
+--------
+ so in short it takes the raw string of text , builds an expression, handles the operator precedence and finally calculates the result 
+
+ 
 ## Screenshots
 
 <img width="734" height="476" alt="Screen Shot 2026-11-05 at 20 40 57 PM" src="https://github.com/user-attachments/assets/f4d9f795-856e-4eb9-add0-eda6123b52aa" />
